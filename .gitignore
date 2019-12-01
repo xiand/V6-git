@@ -1,0 +1,26 @@
+# 忽略文件名是 foo.txt的文件
+foo.txt
+
+#忽略所有的html文件
+*.html
+
+#foo.html是手工维护的，不能忽略 !foo.html
+
+#忽略所有的.o .d .crf 文件
+
+*.o
+*.d
+*.crf
+
+#忽略所有的.chm文件
+*.chm
+
+# /mtk/ 过滤整个文件夹  /mtk/do.c 过滤某个具体文件夹
+
+# !/mtk/one.txt 不要过滤文件夹中的one.txt文件
+
+#过滤整个SourceInsight工程文件夹
+/SourceInsight/
+
+
+
