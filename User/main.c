@@ -46,7 +46,11 @@ static void PrintfHelp(void);
 int main(void)
 {
 	bsp_Init();		/* 硬件初始化 */
-	
+
+	xTaskCreate();
+
+	vTaskStartScheduler();
+#if 0
 	PrintfLogo();	/* 打印例程名称和版本等信息 */
 	PrintfHelp();	/* 打印操作提示 */
 
@@ -80,6 +84,7 @@ int main(void)
 			bsp_LedToggle(4);
 		}
 	}
+#endif
 }
 
 /*

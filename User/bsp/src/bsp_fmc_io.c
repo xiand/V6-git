@@ -298,6 +298,7 @@ static void HC574_ConfigFMC(void)
 *	返 回 值: 无
 *********************************************************************************************************
 */
+#ifndef USE_FreeRTOS
 void bsp_TestExtIO(void)
 {
 	while(1)
@@ -375,5 +376,5 @@ void bsp_TestExtIO(void)
 		bsp_DelayMS(200);			
 	}
 }
-
+#endif
 /***************************** 安富莱电子 www.armfly.com (END OF FILE) *********************************/
