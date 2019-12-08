@@ -1,1 +1,49 @@
+我们上面已经知道了堆栈是分为两个：主堆栈和进程堆栈，CONTROL[1]决定如何选择。
+当CONTROL[1]=0时，只使用MSP,此时用户程序和异常handler共享同一个堆栈。
 
+问题：在freeRTOS中，需要使用MSP和 PSP，那这两个堆栈分别位于什么位置？？
+
+
+
+
+这样的好处是：在使用OS的环境下，只要OS内核仅在handler模式下执行，用户应用程序仅在用
+户模式下执行，这样就可以防止用户程序的堆栈错误破坏OS使用的堆栈。
+通过读取PSP的值，OS就能够获取用户应用程序使用的堆栈，进一步地知道了在发生异常时，
+被压入寄存器的内容，而且还可以把其它寄存器进一步压栈。
+
+OS内核仅在handler模式下运行，怎么理解？？？内核应该只是像任务切换函数等关键函数，才能理解为内核函数，其他的像队列，信号量等，基本是应用层函数使用
+
+
+CPU与Cache、内存以及硬盘之间的数据交换？？这个问题应该在那本书上有比较详细的解释
+：：CPU运算所需数据只能从寄存器存取，寄存器会先从高速缓存区读取数据，不命中才会从内?
+?读数据。而内存中的数据也是先从磁盘缓存区(disk cache)读数据，或者在磁盘缓冲区(disk 
+buffer)存数据，最后才会交际最慢的磁盘。
+
+freeRTOS任务的堆栈分布？？？
+下面是任务创建中的三个语句
+pxStack = pvPortMalloc( ( ( ( size_t ) usStackDepth ) * sizeof( StackType_t ) ) ); /*lint !e9079 All values returned by pvPortMalloc() have at least the alignment required by the MCU's stack and this allocation is the stack. */
+pxNewTCB->pxStack = pxStack;
+
+pxTopOfStack = &( pxNewTCB->pxStack[ ulStackDepth - ( uint32_t ) 1 ] );
+
+pxTopOfStack = &( pxNewTCB->pxStack[ ulStackDepth - ( uint32_t ) 1 ] );
+pxTopOfStack = ( StackType_t * ) ( ( ( portPOINTER_SIZE_TYPE ) pxTopOfStack ) & ( ~( ( portPOINTER_SIZE_TYPE ) portBYTE_ALIGNMENT_MASK ) ) ); /*lint !e923 !e9033 !e9078 MISRA exception.  Avoiding casts between pointers and integers is not practical.  Size differences accounted for using portPOINTER_SIZE_TYPE type.  Checked by assert(). */
+
+pxNewTCB->pxTopOfStack = pxPortInitialiseStack( pxTopOfStack, pxTaskCode, pvParameters );
+
+这个问题其实就只要明白一个点：uint8_t aBuff[10];  我们可以看到 
+&aBuff[9] = 0x20008009;
+&aBuff[8] = 0x20008008;
+&aBuff[7] = 0x20008007;
+&aBuff[6] = 0x20008006;
+&aBuff[5] = 0x20008005;
+&aBuff[4] = 0x20008004;
+&aBuff[3] = 0x20008003;
+&aBuff[2] = 0x20008002;
+&aBuff[1] = 0x20008001;
+&aBuff[0] = 0x20008000;
+Cortex-M3使用的是”向下生长的满栈“模型。堆栈指针SP指向一个被压入堆栈的32位数值。在下一?
+?压栈时，SP先自减4，在存入新的数值。
+通过上述应该可以得出pxTopOfStack为什么要这要计算的问题；
+
+问题：为什么pxNewTCB->pxTopOfStack 被设置为TCB结构体的第一个变量？？？
