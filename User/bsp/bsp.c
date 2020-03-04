@@ -43,6 +43,9 @@ void bsp_Init(void)
 	 */
 	HAL_Init();
 
+	/* 使能CRC 因为使用STemWin前必须要使能 */
+//    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_CRC, ENABLE);
+	__HAL_RCC_CRC_CLK_ENABLE();
 	/* 
        配置系统时钟到168MHz
        - 切换使用HSE。
@@ -60,12 +63,21 @@ void bsp_Init(void)
 	EventRecorderInitialize(EventRecordAll, 1U);
 	EventRecorderStart();
 #endif
-	
+	bsp_InitDWT();
 	bsp_InitKey();    	/* 按键初始化，要放在滴答定时器之前，因为按钮检测是通过滴答定时器扫描 */
-//	bsp_InitTimer();  	/* 初始化滴答定时器 */
+	//bsp_InitTimer();  	/* 初始化滴答定时器 */
 	bsp_InitUart();		/* 初始化串口 */
 	bsp_InitExtIO();    /* 初始化扩展IO */
 	bsp_InitLed();    	/* 初始化LED */	
+	
+	bsp_InitI2C();
+	bsp_DelayMS(100);
+	//bsp_InitMPU6050();
+	bsp_InitExitSDRAM();  /*初始化外部SDRAM*/
+
+	bsp_DetectLcdType();
+	TOUCH_InitHard();
+	LCD_InitHard();
 }
 
 /*

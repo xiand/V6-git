@@ -47,3 +47,38 @@ Cortex-M3Ê¹ÓÃµÄÊÇ¡±ÏòÏÂÉú³¤µÄÂúÕ»¡°Ä£ÐÍ¡£¶ÑÕ»Ö¸ÕëSPÖ¸ÏòÒ»¸ö±»Ñ¹Èë¶ÑÕ»µÄ32Î»ÊýÖµ¡
 Í¨¹ýÉÏÊöÓ¦¸Ã¿ÉÒÔµÃ³öpxTopOfStackÎªÊ²Ã´ÒªÕâÒª¼ÆËãµÄÎÊÌâ£»
 
 ÎÊÌâ£ºÎªÊ²Ã´pxNewTCB->pxTopOfStack ±»ÉèÖÃÎªTCB½á¹¹ÌåµÄµÚÒ»¸ö±äÁ¿£¿£¿£¿
+
+
+ÔÚÈÎÎñ´´½¨º¯ÊýÖÐ
+£ºlistSET_LIST_ITEM_VALUE( &( pxNewTCB->xEventListItem ), ( TickType_t ) configMAX_PRIORITIES - ( TickType_t ) uxPriority );
+freeRTOSÓÅÏÈ¼¶Ô½´ó£¬±íÊ¾ÓÅÏÈ¼¶Ô½¸ß¡£ÉÏÃæµÄº¯Êý¿ÉÒÔµÃµ½ xEventListItemÊÇ½µÐòÅÅÁÐ
+
+
+
+ÎÊÌâ£ºÈç¹ûÒ»¸öÖÐ¶ÏÔÚÏìÓ¦£¬ÕâÊÇ´¥·¢ÁËÒ»¸öÓÅÏÈ¼¶µÍÓÚËüµÄÖÐ¶Ï£¬Õ»ÈçºÎÏìÓ¦£¿£¿¶ÔÓ¦µÄÔ´´úÂëÖÐ
+if( xTaskIncrementTick() != pdFALSE )
+{
+	/* A context switch is required.  Context switching is performed in
+	the PendSV interrupt.  Pend the PendSV interrupt. */
+	portNVIC_INT_CTRL_REG = portNVIC_PENDSVSET_BIT;
+}
+ÔÚsystickÖÐ¶ÏÖÐÈç¹ûÅÐ¶ÏÐèÒª½øÐÐÈÎÎñÇÐ»»£¬»á´¥·¢Ò»¸öpendSVÖÐ¶Ï£¬Õâ¸öÊ±ºò£¬ÊÇÏÈ´ÓsystickÖÐ¶ÏÍË³öPOP£¬È»ºóÔÚÏìÓ¦PendSVÖÐ¶Ï£¬ÔÙ´ÎPUSH¼Ä´æÆ÷Âð£¿£¿Õâ¸öÎÊÌâÆäÊµ¾ÍÊÇ£ºÒ§Î²ÖÐ¶Ï
+ CM3ÎªËõ¶ÌÖÐ¶ÏÑÓ³Ù×öÁËºÜ¶àÅ¬Á¦£¬µÚÒ»¸öÒªÌáµÄ£¬¾ÍÊÇÐÂÔöµÄ¡°Ò§Î²ÖÐ¶Ï¡±
+£¨Tail©\Chaining£©»úÖÆ¡£?
+? µ±´¦ÀíÆ÷ÔÚÏìÓ¦Ä³Òì³£Ê±£¬Èç¹ûÓÖ·¢ÉúÆäËüÒì³££¬µ«ËüÃÇÓÅÏÈ¼¶²»¹»¸ß£¬Ôò±»×èÈû¡ª¡ª
+Õâ¸öÎÒÃÇÒÑ¾­ÖªµÀ¡£ÄÇÃ´ÔÚµ±Ç°µÄÒì³£Ö´ÐÐ·µ»Øºó£¬ÏµÍ³´¦ÀíÐüÆðµÄÒì³£Ê±£¬ÌÈÈô»¹ÊÇÏÈPO
+P
+
+È»ºóÓÖ°ÑPOP³öÀ´µÄÄÚÈÝPUSH»ØÈ¥£¬Õâ²»³ÉÁËÔÒ¹øÁ¶ÌúÔÙÖý¹ø£¬°×°×ÀË·ÑCPUÊ±¼äÂð£¬¿ÉÖª
+£¬»¹ÓÐ¶àÉÙ½ô¼±µÄÊÂ¼þÐü¶øÎ´¾öÑ½£¡ÕýÒò´Ë£¬CM3²»»áÉµºõºõµØPOPÕâÐ©¼Ä´æÆ÷£¬¶øÊÇ¼ÌÐøÊ¹
+ÓÃÉÏÒ»¸öÒì³£ÒÑ¾­PUSHºÃµÄ³É¹û£¬ÏûÃðÁËÕâÖÖÆÌÕÅÀË·Ñ¡£ÕâÃ´Ò»À´£¬¿´ÉÏÈ¥ºÃÏñºóÒ»¸öÒì
+³£°ÑÇ°Ò»¸öµÄÎ²°ÍÒ§µôÁË£¬Ç°Ç°ºóºóÖ»Ö´ÐÐÁËÒ»´ÎÈëÕ»£¯³öÕ»²Ù×÷¡£ÓÚÊÇ£¬ÕâÁ½¸öÒì³£Ö®?
+?
+µÄ¡°Ê±¼ä¹µ¡±±äÕ­ÁËºÜ¶à£¬ÈçÍ¼9.2ËùÊ¾¡£
+
+ ÁíÒ»¸öÒª×¢ÒâµÄ£¬ÊÇÏàÍ¬µÄÒì³£ÊÇ²»ÔÊÐíÖØÈëµÄ¡£ÒòÎªÃ¿¸öÒì³£¶¼ÓÐ×Ô¼ºµÄÓÅÏÈ¼¶£¬²¢
+ÇÒÔÚÒì³£´¦ÀíÆÚ¼ä£¬Í¬¼¶»òµÍÓÅÏÈ¼¶µÄÒì³£ÊÇÒª×èÈûµÄ£¬Òò´Ë¶ÔÓÚÍ¬Ò»¸öÒì³££¬Ö»ÓÐÔÚÉÏ?
+?
+
+ÊµÀýµÄ·þÎñÀý³ÌÖ´ÐÐÍê±Ïºó£¬·½¿É¼ÌÐøÏìÓ¦ÐÂµÄÇëÇó¡£ÓÉ´Ë¿ÉÖª£¬ÔÚSVC·þÎñÀý³ÌÖÐ£¬¾Í²»
+µÃÔÙÊ¹ÓÃSVCÖ¸Áî£¬·ñÔò½«faultËÅºò¡£?

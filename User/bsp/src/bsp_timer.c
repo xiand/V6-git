@@ -68,7 +68,7 @@ static void (*s_TIM_CallBack2)(void);
 static void (*s_TIM_CallBack3)(void);
 static void (*s_TIM_CallBack4)(void);
 
-
+volatile uint32_t giv_sys_time = 0;
 /* 这2个全局变量转用于 bsp_DelayMS() 函数 */
 static volatile uint32_t s_uiDelayCount = 0;
 static volatile uint8_t s_ucTimeOutFlag = 0;
@@ -121,6 +121,7 @@ void bsp_InitTimer(void)
     	对于常规的应用，我们一般取定时周期1ms。对于低速CPU或者低功耗应用，可以设置定时周期为 10ms
     */
 	SysTick_Config(SystemCoreClock / 1000);
+//	SysTick_Config(SystemCoreClock / 10000); //设置定时周期为100us
 	
 	g_ucEnableSystickISR = 1;		/* 1表示执行systick中断 */
 	
@@ -140,38 +141,46 @@ extern void bsp_RunPer10ms(void);
 void SysTick_ISR(void)
 {
 	static uint8_t s_count = 0;
+	static uint8_t s_count2 = 0;
 	uint8_t i;
 	
-	/* 每隔1ms进来1次 （仅用于 bsp_DelayMS） */
-	if (s_uiDelayCount > 0)
+	s_count2++;
+	giv_sys_time++;
+	if(s_count2 == 1)
 	{
-		if (--s_uiDelayCount == 0)
+		s_count2 = 0;
+		/* 每隔1ms进来1次 （仅用于 bsp_DelayMS） */
+		if (s_uiDelayCount > 0)
 		{
-			s_ucTimeOutFlag = 1;
+			if (--s_uiDelayCount == 0)
+			{
+				s_ucTimeOutFlag = 1;
+			}
+		}
+
+		/* 每隔1ms，对软件定时器的计数器进行减一操作 */
+		for (i = 0; i < TMR_COUNT; i++)
+		{
+			bsp_SoftTimerDec(&s_tTmr[i]);
+		}
+
+		/* 全局运行时间每1ms增1 */
+		g_iRunTime++;
+		if (g_iRunTime == 0x7FFFFFFF)	/* 这个变量是 int32_t 类型，最大数为 0x7FFFFFFF */
+		{
+			g_iRunTime = 0;
+		}
+
+		bsp_RunPer1ms();		/* 每隔1ms调用一次此函数，此函数在 bsp.c */
+
+		if (++s_count >= 10)
+		{
+			s_count = 0;
+
+			bsp_RunPer10ms();	/* 每隔10ms调用一次此函数，此函数在 bsp.c */
 		}
 	}
-
-	/* 每隔1ms，对软件定时器的计数器进行减一操作 */
-	for (i = 0; i < TMR_COUNT; i++)
-	{
-		bsp_SoftTimerDec(&s_tTmr[i]);
-	}
-
-	/* 全局运行时间每1ms增1 */
-	g_iRunTime++;
-	if (g_iRunTime == 0x7FFFFFFF)	/* 这个变量是 int32_t 类型，最大数为 0x7FFFFFFF */
-	{
-		g_iRunTime = 0;
-	}
-
-	bsp_RunPer1ms();		/* 每隔1ms调用一次此函数，此函数在 bsp.c */
-
-	if (++s_count >= 10)
-	{
-		s_count = 0;
-
-		bsp_RunPer10ms();	/* 每隔10ms调用一次此函数，此函数在 bsp.c */
-	}
+	
 }
 
 /*
@@ -530,6 +539,7 @@ void bsp_InitHardTimer(void)
        usPeriod = 0xFFFF 表示最大0xFFFF微秒。
        usPeriod = 0xFFFFFFFF 表示最大0xFFFFFFFF微秒。
     */
+//    usPeriod = 100;  //设置100us进入一次中断--2020年1月30日11:18:47 xwz
 	TimHandle.Instance = TIMx;
 	TimHandle.Init.Prescaler         = usPrescaler;
 	TimHandle.Init.Period            = usPeriod;
