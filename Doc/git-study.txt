@@ -43,3 +43,18 @@ git 切换分支时会把未add或未commit的内容带过去， 这一点值得注意。
 stash搞起。要注意，在当前分支git stash的内容， 在其他分支也可以git stash 
 pop出来，为什么？ 因为：工作区和暂存区是公共的。
 
+
+Git鼓励大量使用分支：
+
+查看分支：git branch
+
+创建分支：git branch <name>
+
+切换分支：git checkout <name>或者git switch <name>
+
+创建+切换分支：git checkout -b <name>或者git switch -c <name>
+
+合并某分支到当前分支：git merge <name>
+
+删除分支：git branch -d <name>
+

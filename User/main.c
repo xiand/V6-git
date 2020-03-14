@@ -47,7 +47,7 @@ int main(void)
 {
 	bsp_Init();		/* Ó²¼þ³õÊ¼»¯ */
 
-	xTaskCreate();
+	//xTaskCreate();
 
 	vTaskStartScheduler();
 #if 0

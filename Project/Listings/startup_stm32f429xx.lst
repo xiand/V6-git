@@ -903,11 +903,18 @@ ARM Macro Assembler    Page 14
               00000000 
 Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M4.fp --apcs=int
 erwork --depend=.\objects\startup_stm32f429xx.d -o.\objects\startup_stm32f429xx
-.o -I.\RTE\_Target_1 -ID:\ProgramFile\Keil\ARM\PACK\Keil\STM32F4xx_DFP\2.14.0\D
-rivers\CMSIS\Device\ST\STM32F4xx\Include -ID:\ProgramFile\Keil\ARM\CMSIS\Includ
-e --predefine="__MICROLIB SETA 1" --predefine="__UVISION_VERSION SETA 525" --pr
-edefine="STM32F429xx SETA 1" --list=.\listings\startup_stm32f429xx.lst ..\Libra
-ries\CMSIS\Device\ST\STM32F4xx\Source\Templates\arm\startup_stm32f429xx.s
+.o -I.\RTE\_Target_1 -ID:\software\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.12.0\D
+rivers\CMSIS\Device\ST\STM32F4xx\Include -ID:\software\Keil_v5\ARM\CMSIS\Includ
+e --predefine="__EVAL SETA 1" --predefine="__MICROLIB SETA 1" --predefine="__UV
+ISION_VERSION SETA 526" --predefine="STM32F429xx SETA 1" --list=.\listings\star
+tup_stm32f429xx.lst ..\Libraries\CMSIS\Device\ST\STM32F4xx\Source\Templates\arm
+
+
+
+ARM Macro Assembler    Page 15 
+
+
+\startup_stm32f429xx.s
 
 
 
@@ -2439,4 +2446,4 @@ es\arm\startup_stm32f429xx.s
 es\arm\startup_stm32f429xx.s
 Comment: __main used once
 2 symbols
-453 symbols in table
+454 symbols in table
