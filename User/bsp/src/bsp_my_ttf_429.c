@@ -1025,29 +1025,41 @@ static void LCD429_ConfigLTDC(void)
 	Width = 800;
 	Height = 480;
 
-	HSYNC_W = 48;
+	HSYNC_W = 3;//48;
 	HBP = 88;
 	HFP = 40;
 
 	VSYNC_W = 3;
 	VBP = 32;
 	VFP = 13;
+//		Width = 800;
+//			Height = 480;
+
+//			HSYNC_W = 90;	/* =10时，显示错位，20时部分屏可以的,80时全部OK */
+//			HBP = 10;
+//			HFP = 10;
+//		
+//			VSYNC_W = 10;
+//			VBP = 10;
+//			VFP = 10;	
 	
 	g_LcdWidth = Width;
 	g_LcdHeight = Height;
 
+	//_HAL_RCC_PLLSAICmd(ENABLE);
+	
 	Ltdc_Handler.LayerCfg->ImageWidth = Width;
 	Ltdc_Handler.LayerCfg->ImageHeight = Height;
 	
 	/*配置LTDC 的同步时序*/
-	Ltdc_Handler.Init.HorizontalSync = (HSYNC_W - 1);
-	Ltdc_Handler.Init.VerticalSync = (VSYNC_W - 1);
-	Ltdc_Handler.Init.AccumulatedHBP = (HSYNC_W + HBP - 1);
-	Ltdc_Handler.Init.AccumulatedVBP = (VSYNC_W + VBP - 1);
-	Ltdc_Handler.Init.AccumulatedActiveW = (HSYNC_W + HBP + Width - 1);
-	Ltdc_Handler.Init.AccumulatedActiveH = (VSYNC_W + VBP + Height - 1);
-	Ltdc_Handler.Init.TotalWidth = (Width + HSYNC_W + HBP + HFP - 1); ;
-	Ltdc_Handler.Init.TotalHeigh = (Height + VSYNC_W + VBP + VFP - 1);
+	Ltdc_Handler.Init.HorizontalSync = (HSYNC_W);
+	Ltdc_Handler.Init.VerticalSync = (VSYNC_W);
+	Ltdc_Handler.Init.AccumulatedHBP = (	Ltdc_Handler.Init.HorizontalSync + HBP);
+	Ltdc_Handler.Init.AccumulatedVBP = (Ltdc_Handler.Init.VerticalSync + VBP);
+	Ltdc_Handler.Init.AccumulatedActiveW = (Ltdc_Handler.Init.AccumulatedHBP + Width);
+	Ltdc_Handler.Init.AccumulatedActiveH = (Ltdc_Handler.Init.AccumulatedVBP + Height);
+	Ltdc_Handler.Init.TotalWidth = (Ltdc_Handler.Init.AccumulatedActiveW + HFP ); ;
+	Ltdc_Handler.Init.TotalHeigh = (Ltdc_Handler.Init.AccumulatedActiveH + VFP );
 
 	HAL_LTDC_Init(&Ltdc_Handler);
 
@@ -1062,6 +1074,7 @@ static void LCD429_ConfigLTDC(void)
 		LTDC_Layer_InitStruct.WindowX1 = Width;
 		LTDC_Layer_InitStruct.WindowY0 = 0; 
 		LTDC_Layer_InitStruct.WindowY1 = Height;
+		
 
 		/* Pixel Format configuration*/
 		LTDC_Layer_InitStruct.PixelFormat = LTDC_PIXEL_FORMAT_RGB565;
@@ -1120,6 +1133,7 @@ static void LCD429_ConfigLTDC(void)
 //		LTDC_ReloadConfig(LTDC_IMReload);
 #endif		
 	}
+
 }
 
 

@@ -34,8 +34,8 @@
 //#include "param.h"	/* 包含参数存储模块 */
 
 /* 调试打印语句 */
-//#define touch_printf       printf
-#define touch_printf(...) 
+#define touch_printf       printf
+//#define touch_printf(...) 
 
 /* 每1ms扫描一次坐标 */
 #define DOWN_VALID		30	/* 按下30ms 后, 开始统计ADC */
@@ -65,19 +65,21 @@
 /* 触屏模块用到的全局变量 */
 TOUCH_T g_tTP;
 
+#ifdef USE_EMWIN
 /* emWin要用到的触摸参数，在函数TOUCH_InitHard初始为给图层1发送触摸数据 */
 GUI_PID_STATE State = {0};
+#endif
 
 uint8_t g_TouchType;
 uint8_t g_LcdType;
 
-static uint8_t	TOUCH_PressValid(uint16_t _usX, uint16_t _usY);
-static uint16_t TOUCH_DataFilter(uint16_t *_pBuf, uint8_t _ucCount);
-static void TOUCH_LoadParam(void);
-static void TOUCH_SaveParam(void);
-static int32_t CalTwoPoint(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t x);
-static int16_t TOUCH_TransX(uint16_t _usAdcX, uint16_t _usAdcY);
-static int16_t TOUCH_TransY(uint16_t _usAdcX, uint16_t _usAdcY);
+//static uint8_t	TOUCH_PressValid(uint16_t _usX, uint16_t _usY);
+//static uint16_t TOUCH_DataFilter(uint16_t *_pBuf, uint8_t _ucCount);
+//static void TOUCH_LoadParam(void);
+//static void TOUCH_SaveParam(void);
+//static int32_t CalTwoPoint(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t x);
+//static int16_t TOUCH_TransX(uint16_t _usAdcX, uint16_t _usAdcY);
+//static int16_t TOUCH_TransY(uint16_t _usAdcX, uint16_t _usAdcY);
 int32_t TOUCH_Abs(int32_t x);
 
 
@@ -111,7 +113,8 @@ void bsp_DetectLcdType(void)
 			touch_printf("检测到7.0寸电容触摸屏 800x480\r\n");
 			break;
 		}
-
+		
+#if 0
 		if (i2c_CheckDevice(GT811_I2C_ADDR3) == 0)
 		{
 			g_GT811.i2c_addr = GT811_I2C_ADDR3;
@@ -120,7 +123,7 @@ void bsp_DetectLcdType(void)
 			touch_printf("检测到7.0寸电容触摸屏 1024x600\r\n");
 			break;
 		}		
-#if 0
+
 		/* FT系列电容触摸触摸 : 4.3寸id = 0x55    5.0寸id = 0x0A  7.0寸id = 0x06 */
 		if (i2c_CheckDevice(FT5X06_I2C_ADDR) == 0)
 		{
@@ -223,10 +226,12 @@ void bsp_DetectLcdType(void)
 void TOUCH_InitHard(void)
 {	
     g_tTP.Enable = 0;
-	
+
+#ifdef USE_EMWIN
 	/* 默认是发给图层1，如果是发给图层2，请修改Layer参数为1 */
 	State.Layer = 0;
-	
+#endif
+
 	switch (g_TouchType)
 	{
 		case CT_GT811:			/* 电容触摸 7寸 */
@@ -299,9 +304,8 @@ uint16_t TOUCH_ReadAdcY(void)
 */
 void TOUCH_PutKey(uint8_t _ucEvent, uint16_t _usX, uint16_t _usY)
 {
-#if 0
-	uint16_t xx, yy;
-	uint16_t x = 0, y = 0;
+		uint16_t xx, yy;
+		uint16_t x = 0, y = 0;
 
 	g_tTP.Event[g_tTP.Write] = _ucEvent;
 
@@ -309,7 +313,11 @@ void TOUCH_PutKey(uint8_t _ucEvent, uint16_t _usX, uint16_t _usY)
 	{
 		xx = _usX;
 		yy = _usY;
+		
+		x = xx;
+		y = yy;
 	}
+#if 0
 	else if (g_tFT5X06.Enable == 1)
 	{
 		xx = _usX;
@@ -421,6 +429,8 @@ void TOUCH_PutKey(uint8_t _ucEvent, uint16_t _usX, uint16_t _usY)
 			break;
 	}
 
+#endif
+
 	g_tTP.XBuf[g_tTP.Write] = x;
 	g_tTP.YBuf[g_tTP.Write] = y;
 
@@ -431,7 +441,7 @@ void TOUCH_PutKey(uint8_t _ucEvent, uint16_t _usX, uint16_t _usY)
 	
 	/* 调试语句，打印adc和坐标 */
 	touch_printf("%d - (%d, %d) adcX=%d,adcY=%d\r\n", _ucEvent, x, y, g_tTP.usAdcNowX, g_tTP.usAdcNowY);
-#endif
+
 }
 
 /*
@@ -507,38 +517,7 @@ uint8_t TOUCH_InRect(uint16_t _usX, uint16_t _usY,
 	}
 }
 
-/*
-*********************************************************************************************************
-*	函 数 名: TOUCH_MoveValid
-*	功能说明: 判断当前坐标和上次坐标是否偏差太大
-*	形    参:  _usX1, _usY1: 坐标1
-*			  _usX2, _usY2: 坐标2
-*	返 回 值: 1 表示有效点， 0 表示飞点
-*********************************************************************************************************
-*/
-uint8_t TOUCH_MoveValid(uint16_t _usX1, uint16_t _usY1, uint16_t _usX2, uint16_t _usY2)
-{
-	int16_t iX, iY;
-	static uint8_t s_invalid_count = 0;
 
-	iX = TOUCH_Abs(_usX1 - _usX2);
-	iY = TOUCH_Abs(_usY1 - _usY2);
-
-	if ((iX < 25) && (iY < 25))
-	{
-		s_invalid_count = 0;
-		return 1;
-	}
-	else
-	{
-		if (++s_invalid_count >= 3)
-		{
-			s_invalid_count = 0;
-			return 1;
-		}
-		return 0;
-	}
-}
 
 /*
 *********************************************************************************************************
@@ -703,6 +682,44 @@ void TOUCH_Scan(void)
 	}
 #endif
 }
+
+
+
+#if 0 //采用的是电阻屏
+
+/*
+*********************************************************************************************************
+*	函 数 名: TOUCH_MoveValid
+*	功能说明: 判断当前坐标和上次坐标是否偏差太大
+*	形    参:  _usX1, _usY1: 坐标1
+*			  _usX2, _usY2: 坐标2
+*	返 回 值: 1 表示有效点， 0 表示飞点
+*********************************************************************************************************
+*/
+uint8_t TOUCH_MoveValid(uint16_t _usX1, uint16_t _usY1, uint16_t _usX2, uint16_t _usY2)
+{
+	int16_t iX, iY;
+	static uint8_t s_invalid_count = 0;
+
+	iX = TOUCH_Abs(_usX1 - _usX2);
+	iY = TOUCH_Abs(_usY1 - _usY2);
+
+	if ((iX < 25) && (iY < 25))
+	{
+		s_invalid_count = 0;
+		return 1;
+	}
+	else
+	{
+		if (++s_invalid_count >= 3)
+		{
+			s_invalid_count = 0;
+			return 1;
+		}
+		return 0;
+	}
+}
+
 
 /*
 *********************************************************************************************************
@@ -1209,7 +1226,7 @@ void TOUCH_Calibration(void)
 extern void SaveParam(void);
 static void TOUCH_SaveParam(void)
 {
-#if 0
+
 	g_tParam.usAdcX1 = g_tTP.usAdcX1;
 	g_tParam.usAdcY1 = g_tTP.usAdcY1;
 	g_tParam.usAdcX2 = g_tTP.usAdcX2;
@@ -1233,7 +1250,7 @@ static void TOUCH_SaveParam(void)
 	g_tParam.TouchDirection = g_LcdDirection;	/* 2014-09-11 添加屏幕方向, 用于屏幕旋转时无需再次校准 */
 
 	SaveParam();	/* 将参数写入Flash */
-#endif
+
 }
 
 /*
@@ -1247,7 +1264,7 @@ static void TOUCH_SaveParam(void)
 extern void LoadParam(void);
 static void TOUCH_LoadParam(void)
 {
-#if 0
+
 	LoadParam();	/* 从Flash中读取参数 */
 
 	g_tTP.usAdcX1 = g_tParam.usAdcX1;
@@ -1270,7 +1287,7 @@ static void TOUCH_LoadParam(void)
 
 	g_tTP.XYChange = g_tParam.XYChange;
 	
-#endif
 }
+#endif
 
 /***************************** 安富莱电子 www.armfly.com (END OF FILE) *********************************/

@@ -1,4 +1,4 @@
---cpu=Cortex-M4.fp
+--cpu=Cortex-M4.fp.sp
 ".\objects\main.o"
 ".\objects\stm32f4xx_it.o"
 ".\objects\sysinfotest.o"
@@ -12,10 +12,10 @@
 ".\objects\bsp_my_fmc_sdram.o"
 ".\objects\bsp_tim_pwm.o"
 ".\objects\bsp_my_dwt.o"
-".\objects\bsp_my_gt811_1.o"
-".\objects\bsp_my_tft_lcd_1.o"
-".\objects\bsp_my_touch_1.o"
-".\objects\bsp_my_ttf_429_1.o"
+".\objects\bsp_my_gt811.o"
+".\objects\bsp_my_tft_lcd.o"
+".\objects\bsp_my_touch.o"
+".\objects\bsp_my_ttf_429.o"
 ".\objects\startup_stm32f429xx.o"
 ".\objects\stm32f4xx_hal.o"
 ".\objects\stm32f4xx_hal_cortex.o"
@@ -36,6 +36,7 @@
 ".\objects\system_stm32f4xx.o"
 ".\objects\segger_hardfaulthandler.o"
 ".\objects\hardfaulthandler.o"
+".\objects\lcdconf_lin_template.o"
 ".\objects\croutine.o"
 ".\objects\event_groups.o"
 ".\objects\list.o"
@@ -47,7 +48,6 @@
 ".\objects\port.o"
 ".\objects\gui_x_freertos.o"
 ".\objects\guiconf.o"
-".\objects\lcdconf_lin_template.o"
 ".\objects\maintask.o"
 "..\emWin\GUILib\STemWin532_CM4_OS_Keil_ot.lib"
 ".\objects\asc12.o"
@@ -59,6 +59,7 @@
 ".\objects\hz24.o"
 ".\objects\hz32.o"
 ".\objects\ra8875_asc_width.o"
+".\objects\snake_game_hmi.o"
 --library_type=microlib --strict --scatter ".\Objects\V6-git.sct"
 --summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
 --info sizes --info totals --info unused --info veneers

@@ -184,6 +184,7 @@
             <hadXRAM>0</hadXRAM>
             <uocXRam>0</uocXRam>
             <RvdsVP>2</RvdsVP>
+            <RvdsMve>0</RvdsMve>
             <hadIRAM2>1</hadIRAM2>
             <hadIROM2>0</hadIROM2>
             <StupSel>8</StupSel>
@@ -337,7 +338,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32F429xx,USE_FULL_LL_DRIVER</Define>
               <Undefine></Undefine>
-              <IncludePath>..\User\bsp\inc;..\User\bsp;..\User;..\Libraries\STM32F4xx_HAL_Driver\Inc;..\Libraries\STM32F4xx_HAL_Driver\Src\Legacy;..\Libraries\CMSIS\Device\ST\STM32F4xx\Include;..\Libraries\CMSIS\Include;..\freeRTOS;..\freeRTOS\include;..\User\fonts;..\emWin\Include;..\emWin\Config;..\emWin\emWinTask;..\emWin\GUI_X;..\User\freeRTOS;..\freeRTOS\portable\RVDS\ARM_CM4F;..\emWin\emWinDemo</IncludePath>
+              <IncludePath>..\User\bsp\inc;..\User\bsp;..\User;..\Libraries\STM32F4xx_HAL_Driver\Inc;..\Libraries\STM32F4xx_HAL_Driver\Src\Legacy;..\Libraries\CMSIS\Device\ST\STM32F4xx\Include;..\Libraries\CMSIS\Include;..\freeRTOS;..\freeRTOS\include;..\User\fonts;..\emWin\Include;..\emWin\Config;..\emWin\emWinTask;..\emWin\GUI_X;..\User\freeRTOS;..\freeRTOS\portable\RVDS\ARM_CM4F;..\emWin\emWinDemo;..\User\snake_game</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -892,6 +893,11 @@
           <GroupName>FreeRTOS/Source</GroupName>
           <Files>
             <File>
+              <FileName>LCDConf_Lin_Template.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\emWin\Config\LCDConf_Lin_Template.c</FilePath>
+            </File>
+            <File>
               <FileName>croutine.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\freeRTOS\croutine.c</FilePath>
@@ -1018,11 +1024,6 @@
               <FilePath>..\emWin\Config\GUIConf.c</FilePath>
             </File>
             <File>
-              <FileName>LCDConf_Lin_Template.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\emWin\Config\LCDConf_Lin_Template.c</FilePath>
-            </File>
-            <File>
               <FileName>GUIConf.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\emWin\Config\GUIConf.h</FilePath>
@@ -1106,6 +1107,16 @@
         </Group>
         <Group>
           <GroupName>Doc</GroupName>
+        </Group>
+        <Group>
+          <GroupName>snake</GroupName>
+          <Files>
+            <File>
+              <FileName>snake_game_hmi.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\snake_game\snake_game_hmi.c</FilePath>
+            </File>
+          </Files>
         </Group>
       </Groups>
     </Target>

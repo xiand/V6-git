@@ -31,7 +31,7 @@
 
 /* CPU空闲时执行的函数 */
 //#define CPU_IDLE()		bsp_Idle()
-#define USE_FreeRTOS 0
+#define USE_FreeRTOS 1
 
 #if USE_FreeRTOS == 1
 	#include "FreeRTOS.h"
@@ -47,6 +47,8 @@
 /* 这个宏仅用于调试阶段排错 */
 #define BSP_Printf		printf
 //#define BSP_Printf(...)
+
+//#define USE_EMWIN
 
 #define EXTI9_5_ISR_MOVE_OUT		/* bsp.h 中定义此行，表示本函数移到 stam32f4xx_it.c。 避免重复定义 */
 

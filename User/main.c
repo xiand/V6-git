@@ -48,65 +48,88 @@ int main(void)
 #if 1
 static void vTaskGUI(void *pvParameters)
 {
-//	FONT_T tFont12;			/* 定义一个字体结构体变量，用于设置字体参数 */
-//	FONT_T tFont16;			/* 定义一个字体结构体变量，用于设置字体参数 */
-//	uint8_t buf[100], count = 0;
-//
-//	/* 设置字体参数 */
-//	{
-//		tFont12.FontCode = FC_ST_12;	    /* 字体代码 12点阵 */
-//		tFont12.FrontColor = CL_WHITE;		/* 字体颜色 */
-//		tFont12.BackColor = CL_BLUE;	    /* 文字背景颜色 */
-//		tFont12.Space = 0;					/* 文字间距，单位 = 像素 */
-//	}
-//	
-//	/* 设置字体参数 */
-//	{
-//		tFont16.FontCode = FC_ST_16;	    /* 字体代码 16点阵 */
-//		tFont16.FrontColor = CL_WHITE;		/* 字体颜色 */
-//		tFont16.BackColor = CL_BLUE;	    /* 文字背景颜色 */
-//		tFont16.Space = 0;					/* 文字间距，单位 = 像素 */
-//	}
-//
-//	/* 延迟200ms再点亮背光，避免瞬间高亮 */
-//	bsp_DelayMS(200); 
-//	
-//	/* 清屏 */
-//	LCD_ClrScr(CL_BLUE);
-//
-//	/* 显示汉字 */
-//	LCD_DispStr(5, 3, "故人西辞黄鹤楼，烟花三月下扬州。", &tFont12); 
-//	LCD_DispStr(5, 18, "孤帆远影碧空尽，唯见长江天际流。", &tFont12); 
-//	LCD_DispStr(5, 38, "故人西辞黄鹤楼，烟花三月下扬州。", &tFont16); 
-//	LCD_DispStr(5, 58, "孤帆远影碧空尽，唯见长江天际流。", &tFont16); 
-//	
-//	/* 绘制2D图形 */
-//	LCD_DrawLine(5, 120, 100, 220, CL_RED);
-//	LCD_DrawRect(120, 120, 100, 100, CL_RED);
-//	LCD_DrawCircle(280, 170, 50, CL_RED);
-//	LCD_Fill_Rect (340, 120, 100, 100, CL_BUTTON_GREY);
-//	
-//	/* 界面整体显示完毕后，再打开背光，设置为缺省亮度 */
-//	bsp_DelayMS(100); 
-//	LCD_SetBackLight(BRIGHT_DEFAULT);	
+#if 0
+	FONT_T tFont12;			/* 定义一个字体结构体变量，用于设置字体参数 */
+	FONT_T tFont16;			/* 定义一个字体结构体变量，用于设置字体参数 */
+	uint8_t buf[100], count = 0;
+
+	/* 设置字体参数 */
+	{
+		tFont12.FontCode = FC_ST_12;	    /* 字体代码 12点阵 */
+		tFont12.FrontColor = CL_WHITE;		/* 字体颜色 */
+		tFont12.BackColor = CL_BLUE;	    /* 文字背景颜色 */
+		tFont12.Space = 0;					/* 文字间距，单位 = 像素 */
+	}
+	
+	/* 设置字体参数 */
+	{
+		tFont16.FontCode = FC_ST_16;	    /* 字体代码 16点阵 */
+		tFont16.FrontColor = CL_WHITE;		/* 字体颜色 */
+		tFont16.BackColor = CL_BLUE;	    /* 文字背景颜色 */
+		tFont16.Space = 0;					/* 文字间距，单位 = 像素 */
+	}
+
+	/* 延迟200ms再点亮背光，避免瞬间高亮 */
+	bsp_DelayMS(200); 
+	
+	/* 清屏 */
+	LCD_ClrScr(CL_BLUE);
+
+	/* 显示汉字 */
+	LCD_DispStr(5, 3, "故人西辞黄鹤楼，烟花三月下扬州。", &tFont12); 
+	LCD_DispStr(5, 18, "孤帆远影碧空尽，唯见长江天际流。", &tFont12); 
+	LCD_DispStr(5, 38, "故人西辞黄鹤楼，烟花三月下扬州。", &tFont16); 
+	LCD_DispStr(5, 58, "孤帆远影碧空尽，唯见长江天际流。", &tFont16); 
+	
+	/* 绘制2D图形 */
+	LCD_DrawLine(5, 120, 100, 220, CL_RED);
+	LCD_DrawRect(120, 120, 100, 100, CL_RED);
+	LCD_DrawCircle(280, 170, 50, CL_RED);
+	LCD_Fill_Rect (340, 120, 100, 100, CL_BUTTON_GREY);
+	
+	/* 界面整体显示完毕后，再打开背光，设置为缺省亮度 */
+	bsp_DelayMS(100); 
+	LCD_SetBackLight(BRIGHT_DEFAULT);	
+	while (1)
+	{
+		/* 判断软件定时器0是否超时 */
+//		if(bsp_CheckTimer(0))
+		{
+			/* 每隔200ms 进来一次 */  
+			bsp_LedToggle(2);
+			
+			sprintf((char *)buf, "count = %03d", count++);
+			LCD_DispStr(5, 90, (char *)buf, &tFont16); 
+			vTaskDelay(200);
+		}
+	}
+#endif
+
+
+#if 1
+	snake_game_hmi_show();
+	snake_game_move();
+
 //	while (1)
 //	{
 //		/* 判断软件定时器0是否超时 */
 ////		if(bsp_CheckTimer(0))
 //		{
 //			/* 每隔200ms 进来一次 */  
-//			bsp_LedToggle(2);
-//			
-//			sprintf((char *)buf, "count = %03d", count++);
-//			LCD_DispStr(5, 90, (char *)buf, &tFont16); 
+//			bsp_LedToggle(2);					
 //			vTaskDelay(200);
 //		}
 //	}
+#endif
+	
+#if 0
 	while(1)
 	{
 		MainTask();
 
 	}
+#endif
+
 }
 
 static void vTaskTaskUserIF(void *pvParameters)
@@ -160,25 +183,10 @@ static void vTaskLED(void *pvParameters)
 
 static void vTaskStart(void *pvParameters)
 {
-	uint8_t ucCount = 0;
 	uint8_t ucCount1 = 0;
 
 	while(1)
 	{
-//		if(g_tTP.Enable == 1)
-//		{
-//			TOUCH_Scan();
-
-//			//按键扫描
-//			ucCount++;
-//			if(ucCount == 10)
-//			{
-//				ucCount = 0;
-//				bsp_KeyScan10ms();
-//			}
-//			vTaskDelay(1);			
-//		}
-
 		if(g_GT811.Enable == 1)
 		{
 			bsp_KeyScan10ms();
@@ -186,7 +194,7 @@ static void vTaskStart(void *pvParameters)
 			if(ucCount1 == 2)
 			{
 				ucCount1 = 0;
-				GT811_OnePiontScan();
+				GT811_Scan();
 			}
 			vTaskDelay(10);
 		}
@@ -200,7 +208,7 @@ static void AppTaskCreate(void)
 				"vTaskGUI",
 				1024,
 				NULL,
-				1,
+				4,
 				NULL);
 
 	xTaskCreate(vTaskTaskUserIF,
@@ -210,18 +218,18 @@ static void AppTaskCreate(void)
 				2,
 				&xHandleTaskUserIF);
 
-	xTaskCreate(vTaskLED,
-				"vTaskLED",
-				512,
-				NULL,
-				3,
-				&xHandleTaskLED);
+//	xTaskCreate(vTaskLED,
+//				"vTaskLED",
+//				512,
+//				NULL,
+//				3,
+//				&xHandleTaskLED);
 
 	xTaskCreate(vTaskStart,
 				"vTaskStart",
 				512,
 				NULL,
-				4,
+				3,
 				&xHandleTaskStart);
 }
 

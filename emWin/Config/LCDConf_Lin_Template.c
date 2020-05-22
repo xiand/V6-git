@@ -116,7 +116,6 @@ extern  uint16_t Width, Height, HSYNC_W, VSYNC_W, HBP, HFP, VBP, VFP;
 		  
 	      颜色模式 = 16位色RGB566，ARGB1555, ARGB4444，AL88，那么显存的大小就是：
 	      XSIZE_PHYS * YSIZE_PHYS * 2 * NUM_VSCREENS * NUM_BUFFERS
-
 	      颜色模式 = 8位色L8，AL44，那么显存的大小就是：
 	      XSIZE_PHYS * YSIZE_PHYS * 1 * NUM_VSCREENS * NUM_BUFFERS	
       
@@ -125,7 +124,6 @@ extern  uint16_t Width, Height, HSYNC_W, VSYNC_W, HBP, HFP, VBP, VFP;
 	  图层的话会超出8MB，所以用户根据自己的情况做显存和emWin动态内存的分配调整。
 	    举一个例子，对于800*480分辨率的显示屏，使能32位色，三缓冲，那么最终一个图层需要的大小就是
       800 * 480 * 4 * 3  = 4.394MB的空间，如果是双图层，已经超出8MB的分配范围。
-
       (5)为了方便起见，图层2的宏定义LCD_LAYER1_FRAME_BUFFER中的参数4是按照32位色设置的，如果用户的图层1
          使用的是8位色，这里填数字1,如果是16位色，这里填2，如果是24位色，这里填3。
 */
@@ -276,7 +274,7 @@ DEFINE_DMA2D_COLORCONVERSION(M4444I, LTDC_Pixelformat_ARGB4444)
 									文件内使用的全局变量
 **********************************************************************************************************
 */
-static LTDC_HandleTypeDef     hltdc;  
+static LTDC_HandleTypeDef     hltdc = {0};  
 static LTDC_Layer_TypeDef       * _apLayer[]  = { LTDC_Layer1, LTDC_Layer2 };
 //static LTDC_Layer_TypeDef       * _apLayer[]  = { LTDC_Layer1, LTDC_Layer2 };
 static const U32                  _aAddr[]    = { LCD_LAYER0_FRAME_BUFFER, LCD_LAYER1_FRAME_BUFFER};
@@ -1357,10 +1355,18 @@ void LTDC_IRQHandler(void)
 */
 static void _LCD_InitController(int LayerIndex) 
 {
-	LTDC_LayerCfgTypeDef  layer_cfg;  
+	LTDC_LayerCfgTypeDef  layer_cfg = {0};  
 	static uint32_t       LUT[256];
-	uint32_t              i;
+	//uint32_t              i;
 	static uint8_t Done = 0;
+
+	int xSize, ySize, BytesPerLine, BitsPerPixel, i;
+	U32 Pixelformat, Color;
+
+	if(LayerIndex >= GUI_COUNTOF(_apLayer))
+	{
+		return;
+	}
 	
 	if (Done == 0) 
 	{
@@ -1376,7 +1382,88 @@ static void _LCD_InitController(int LayerIndex)
 		HAL_NVIC_SetPriority(LTDC_IRQn, 0,0);
 		HAL_NVIC_EnableIRQ(LTDC_IRQn);
 	}
+
+	xSize = LCD_GetXSizeEx(LayerIndex);
+	ySize = LCD_GetYSizeEx(LayerIndex);
+
 	
+	layer_cfg.WindowX0 = HSYNC_W + HBP + 1;
+	layer_cfg.WindowX1 = (Width + layer_cfg.WindowX0 - 1);
+	layer_cfg.WindowY0 = VSYNC_W + VBP + 1;
+	layer_cfg.WindowY1 = (Height + layer_cfg.WindowY0 - 1);
+
+	layer_cfg.PixelFormat = _GetPixelformat(LayerIndex);
+
+	/* Alpha常数 (255 表示完全不透明) */
+	layer_cfg.Alpha = 255;
+
+	/* 无背景色 */
+	layer_cfg.Alpha0 = 0;   /* 完全透明 */
+	layer_cfg.Backcolor.Blue = 0;
+	layer_cfg.Backcolor.Green = 0;
+	layer_cfg.Backcolor.Red = 0;	
+
+	BytesPerLine = _GetBytesPerLine(LayerIndex, xSize);
+
+	/* 配置图层混合因数 */
+	layer_cfg.BlendingFactor1 = LTDC_BLENDING_FACTOR1_PAxCA;
+	layer_cfg.BlendingFactor2 = LTDC_BLENDING_FACTOR2_PAxCA;
+
+	/* 配置行列大小 */
+	layer_cfg.ImageWidth = BytesPerLine + 3;;
+	layer_cfg.ImageHeight = ySize;
+
+	/* 显存地址 */
+	layer_cfg.FBStartAdress = _aAddr[LayerIndex];
+
+
+	/* 配置图层1 */
+	HAL_LTDC_ConfigLayer(&hltdc, &layer_cfg, LayerIndex);
+
+	BitsPerPixel = LCD_GetBitsPerPixelEx(LayerIndex);
+
+	if(BitsPerPixel <= 8)
+	{
+		_apLayer[LayerIndex]->CR  |= (uint32_t)LTDC_LxCR_LEN;
+	}
+	if(_apColorConvAPI[LayerIndex] == GUICC_1616I) 
+	{
+		for (i = 0; i < 16; i++) 
+		{
+			Color = LCD_API_ColorConv_1616I.pfIndex2Color(i);
+			_LTDC_SetLUTEntry(LayerIndex, Color, i);
+		}
+
+		if (_apColorConvAPI[LayerIndex] == GUICC_8666) 
+		{
+			for (i = 0; i < 16; i++) 
+			{
+				Color = LCD_API_ColorConv_8666.pfIndex2Color(i);
+				_LTDC_SetLUTEntry(LayerIndex, Color, i);
+			}			
+		}
+	}
+	else
+	{
+		if (_apColorConvAPI[LayerIndex] == GUICC_88666I) 
+		{
+			_LTDC_LayerEnableLUT(_apLayer[LayerIndex], ENABLE);
+			for (i = 0; i < 256; i++) 
+			{
+				Color = LCD_API_ColorConv_8666.pfIndex2Color(i);
+				_LTDC_SetLUTEntry(LayerIndex, Color, i);
+			}
+		}
+
+	}
+	_apLayer[LayerIndex]->CR |= (uint32_t)LTDC_LxCR_LEN;
+	
+	//
+	// Reload configuration
+	//
+	//LTDC_ReloadConfig(LTDC_SRCR_IMR);
+	 LTDC->SRCR = (uint32_t)LTDC_SRCR_IMR;
+#if 0	 
 	if (LayerIndex < GUI_NUM_LAYERS)
 	{
 		/* 窗口显示区设置 */ 
@@ -1432,6 +1519,8 @@ static void _LCD_InitController(int LayerIndex)
 			}
 		}
 	}  
+#endif
+
 #if 0
 	LTDC_Layer_InitTypeDef LTDC_Layer_InitStruct = {0};
 	
@@ -1855,6 +1944,7 @@ int LCD_X_DisplayDriver(unsigned LayerIndex, unsigned Cmd, void * pData)
 				_axSize[LayerIndex] = p->xSize;
 				_aySize[LayerIndex] = p->ySize;
 				_LTDC_SetLayerPos(LayerIndex, xPos, yPos);
+				break;
 			}
 			
 		case LCD_X_SETALPHA: 

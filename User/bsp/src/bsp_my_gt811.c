@@ -2,224 +2,338 @@
 *********************************************************************************************************
 *
 *	模块名称 : 电容触摸芯片GT811驱动程序
-*	文件名称 : bsp_ct811.c
+*	文件名称 : bsp_gt811.c
 *	版    本 : V1.0
 *	说    明 : GT811触摸芯片驱动程序。
 *	修改记录 :
 *		版本号   日期        作者     说明
-*		V1.0    2014-12-25  armfly   正式发布
+*		V1.0    2017-12-02  armfly   正式发布
 *
-*	Copyright (C), 2014-2015, 安富莱电子 www.armfly.com
+*	Copyright (C), 2017-2025, 安富莱电子 www.armfly.com
 *********************************************************************************************************
 */
-
 #include "bsp.h"
 #include "GUI.h"
 
-#define GT811_READ_XY_REG 	0x721	/* 坐标寄存器 */
-#define GT811_CONFIG_REG	0x6A2	/* 配置参数寄存器 */
-
-/* GT811配置参数，一次性写入 */
-//const uint8_t s_GT811_CfgParams[]=
-uint8_t s_GT811_CfgParams[]=
-{
-	/*
-		0x6A2  R/W  Sen_CH0    触摸屏 1 号感应线对应的 IC 感应线 
-		0x6A3  R/W  Sen_CH1    触摸屏 2 号感应线对应的 IC 感应线
-		0x6A4  R/W  Sen_CH2    触摸屏 3 号感应线对应的 IC 感应线
-		0x6A5  R/W  Sen_CH3    触摸屏 4 号感应线对应的 IC 感应线
-		0x6A6  R/W  Sen_CH4    触摸屏 5 号感应线对应的 IC 感应线
-		0x6A7  R/W  Sen_CH5    触摸屏 6 号感应线对应的 IC 感应线 
-		0x6A8  R/W  Sen_CH6    触摸屏 7 号感应线对应的 IC 感应线
-		0x6A9  R/W  Sen_CH7    触摸屏 8 号感应线对应的 IC 感应线
-		0x6AA  R/W  Sen_CH8    触摸屏 9 号感应线对应的 IC 感应线
-		0x6AB  R/W  Sen_CH9    触摸屏 10 号感应线对应的 IC 感应线
-	*/
-    0x12,0x10,0x0E,0x0C,0x0A,0x08,0x06,0x04,0x02,0x00,
-
-	/*
-	0x6AC  R/W  Dr0_Con  CHSELEF0  F1DELAY0
-	0x6AD  R/W  Dr0_Con  F2DELAY0  F3DELAY0
-	
-	0x6AE  R/W  Dr1_Con  CHSELEF1  F1DELAY1
-	0x6AF  R/W  Dr1_Con  F2DELAY1  F3DELAY1
-	
-	0x6B0  R/W  Dr2_Con  CHSELEF2  F1DELAY2
-	0x6B1  R/W  Dr2_Con  F2DELAY2  F3DELAY2
-	
-	0x6B2  R/W  Dr3_Con  CHSELEF3  F1DELAY3
-	0x6B3  R/W  Dr3_Con  F2DELAY3  F3DELAY3
-	
-	0x6B4  R/W  Dr4_Con  CHSELEF4  F1DELAY4
-	0x6B5  R/W  Dr4_Con  F2DELAY4  F3DELAY4
-	
-	0x6B6  R/W  Dr5_Con  CHSELEF5  F1DELAY5
-	0x6B7  R/W  Dr5_Con  F2DELAY5  F3DELAY5
-	
-	0x6B8  R/W  Dr6_Con  CHSELEF6  F1DELAY6
-	0x6B9  R/W  Dr6_Con  F2DELAY6  F3DELAY6
-	
-	0x6BA  R/W  Dr7_Con  CHSELEF7  F1DELAY7
-	0x6BB  R/W  Dr7_Con  F2DELAY7  F3DELAY7
-	
-	0x6BC  R/W  Dr8_Con  CHSELEF8  F1DELAY8
-	0x6BD  R/W  Dr8_Con  F2DELAY8  F3DELAY8
-	
-	0x6BE  R/W  Dr9_Con  CHSELEF9  F1DELAY9
-	0x6BF  R/W  Dr9_Con  F2DELAY9  F3DELAY9
-	
-	0x6C0  R/W  Dr10_Con  CHSELEF10  F1DELAY10
-	0x6C1  R/W  Dr10_Con  F2DELAY10  F3DELAY10
-	
-	0x6C2  R/W  Dr11_Con  CHSELEF11  F1DELAY11
-	0x6C3  R/W  Dr11_Con  F2DELAY11  F3DELAY11
-	
-	0x6C4  R/W  Dr12_Con  CHSELEF12  F1DELAY12
-	0x6C5  R/W  Dr12_Con  F2DELAY12  F3DELAY12
-	
-	0x6C6  R/W  Dr13_Con  CHSELEF13  F1DELAY13
-	0x6C7  R/W  Dr13_Con  F2DELAY13  F3DELAY13
-	
-	0x6C8  R/W  Dr14_Con  CHSELEF14  F1DELAY14
-	0x6C9  R/W  Dr14_Con  F2DELAY14  F3DELAY14
-	
-	0x6CA  R/W  Dr15_Con  CHSELEF15  F1DELAY15
-	0x6CB  R/W  Dr15_Con  F2DELAY15  F3DELAY15
-	*/
-	0x05,0x55,0x15,0x55,0x25,0x55,0x35,0x55,0x45,0x55,0x55,0x55,0x65,0x55,0x75,0x55,
-	0x85,0x55,0x95,0x55,0xA5,0x55,0xB5,0x55,0xC5,0x55,0xD5,0x55,0xE5,0x55,0xF5,0x55,	
-	
-	/*
-	0x6CC  R/W  ADCCFG  芯片扫描控制参数
-	0x6CD  R/W  SCAN    芯片扫描控制参数
-	*/
-	0x1B,0x03,
-	
-	/*
-	0x6CE  R/W  F1SET  驱动脉冲 1 频率
-	0x6CF  R/W  F2SET  驱动脉冲 2 频率
-	0x6D0  R/W  F3SET  驱动脉冲 3 频率
-	0x6D1  R/W  F1PNUM  驱动脉冲 1 个数
-	0x6D2  R/W  F2PNUM  驱动脉冲 2 个数 
-	0x6D3  R/W  F3PNUM  驱动脉冲 3 个数
-	*/
-	0x00,0x00,0x00,0x13,0x13,0x13,
-	
-	/* 0x6D4  R/W  TOTALROW  全部使用的驱动通道数(屏的驱动线+按键驱动线) */
-	0x0F,
-	
-	/*
-	0x6D5  R/W  TSROW  用在屏上的驱动线
-	0x6D6  R/W  TOTALCOL  用在屏上的感应线
-	*/
-	0x0F,0x0A,
-	
-	/*
-	0x6D7  R/W  Sc_Touch  屏幕按键阈值
-	0x6D8  R/W  Sc_Leave  屏幕松键阈值
-	*/
-	0x50,0x30,
-	
-	/* 
-	0x6D9  R/W  Md_Switch  保留  DD2    R1  R0  INT    SITO    RT    ST 
-	0x6DA  R/W  LPower_C  保留  Auto 无按键进低功耗时间，0-63 有效，以 s 为单位
-	*/
-	0x05,0x03,
-	
-	/* 0x6DB  R/W  Refresh  触摸刷新速率控制参数（50Hz~100Hz）：0-100 有效 */	
-	0x64,
-	
-	/* 0x6DC  R/W  Touch_N  保留  使能触摸点个数：1-5 有效 */
-	0x05,
-	
-	/* 
-	0x6DD  R/W  X_Ou_Max_L X 坐标输出最大值  480
-	0x6DE  R/W  X_Ou_Max_H
-	
-	0x6DF  R/W  Y_Ou_Max_L  Y 坐标输出最大值  800
-	0x6E0  R/W  Y_Ou_Max_H
-	*/
-#if 1
-	0x58,0x02,
-	0x00,0x04,
-#else
-	0xe0,0x01,
-	0x20,0x03,
-#endif
-
-	/*
-	0x6E1  R/W  X _Th  X 坐标输出门限：0-255，以 4 个原始坐标点为单位
-	0x6E2  R/W  Y_Th  Y 坐标输出门限：0-255，以 4 个原始坐标点为单位
-	*/ 
-	0x00,  0x00,
-	
-	/*
-	0x6E3  R/W  X_Co_Sm  X 方向平滑控制变量，0-255 可配置，0 表示关
-	0x6E4  R/W  Y_Co_Sm  Y 方向平滑控制变量，0-255 可配置，0 表示关
-	0x6E5  R/W  X_Sp_Lim  X 方向平滑上限速度：0-255 可配置，0 表示关
-	0x6E6  R/W  Y_Sp_ Lim  Y 方向平滑上限速度：0-255 可配置，0 表示关
-	*/
-	0x32,0x2C,0x34,0x2E,
-	
-	/*
-	0x6E7  R/W  X_Bor_Lim  Reserved  Reserved
-	0x6E8  R/W  Y_Bor_Lim  Reserved  Reserved
-	*/
-	0x00,0x00,
-	
-	/* 0x6E9  R/W  Filter  丢弃数据帧数  坐标窗口滤波值，以 4 为基数 */
-	0x04,
-	
-	/* 0x6EA  R/W  Large_Tc  0-255 有效：单一触摸区包含结点数大于此数会判为大面积触摸 */
-	0x14,
-	
-	/* 0x6EB  R/W  Shake_Cu  Touch 事件建立去抖  手指个数从多到少去抖 */
-	0x22,
-	
-	/* 0x6EC  R/W  Noise_R  保留  白噪声削减量（低 nibble）有效 */
-	0x04,
-	
-	/* 0x6ED~0x6F1 R/W    保留 */
-	0x00,0x00,0x00,0x00,0x00,
-	
-	
-    0x20,0x14,0xEC,0x01,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x0C,0x30,
-    0x25,0x28,0x14,0x00,0x00,0x00,0x00,0x00,0x00,0x01,
-};
 
 #if 0
-uint8_t s_GT811_CfgParams[]=
-{
-    0x30,0x0f,0x05,0x06,0x28,0x02,0x14,0x14,0x10,0x28,0xb2,
-	800>>8,
-	800&0xFF,
-	480>>8,
-	480&0xFF,
-	0xed,
-    0xcb,0xa9,0x87,0x65,0x43,0x21,0x00,0x00,0x00,0x00,0x00,0x4d,0xc1,0x20,0x01,0x01,
-    0x41,0x64,0x3c,0x1e,0x28,0x0e,0x00,0x00,0x00,0x00,0x50,0x3c,0x32,0x71,0x00,0x00,
-    0x00,0x00,0x00,0x00,0x00,0x01
-};  
-
-uint8_t s_GT811_CfgParams[]=
-{
-        0x06,0xA2,  
-        0x12,0x10,0x0E,0x0C,0x0A,0x08,0x06,0x04,0x02,0x00,0xE2,0x53,0xD2,0x53,0xC2,0x53,  
-        0xB2,0x53,0xA2,0x53,0x92,0x53,0x82,0x53,0x72,0x53,0x62,0x53,0x52,0x53,0x42,0x53,  
-        0x32,0x53,0x22,0x53,0x12,0x53,0x02,0x53,0xF2,0x53,0x0F,0x13,0x40,0x40,0x40,0x10,  
-        0x10,0x10,0x0F,0x0F,0x0A,0x35,0x25,0x0C,0x03,0x00,0x05,0x20,0x03,0xE0,0x01,0x00,  
-        0x00,0x34,0x2C,0x36,0x2E,0x00,0x00,0x03,0x19,0x03,0x08,0x00,0x00,0x00,0x00,0x00,  
-        0x14,0x10,0xEC,0x01,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x0D,0x40,  
-        0x30,0x3C,0x28,0x00,0x00,0x00,0x00,0xC0,0x12,0x01     
-};  
+	#define printf_gt811dbg printf
+#else
+	#define printf_gt811dbg(...)
 #endif
 
+#define GT811_READ_XY_REG    0x814E /* 坐标寄存器 */ 
+
+#define GT811_CLEARBUF_REG   0x814E /* 清除坐标寄存器 */ 
+
+#define GT811_CONFIG_REG     0x8047 /* 配置参数寄存器 */ 
+
+#define GT811_COMMAND_REG    0x8040 /* 实时命令 */ 
+
+#define GT811_PRODUCT_ID_REG 0x8140 /* 芯片ID */ 
+
+#define GT811_VENDOR_ID_REG  0x814A /* 当前模组选项信息 */ 
+
+#define GT811_CONFIG_VERSION_REG   0x8047 /* 配置文件版本号 */ 
+
+#define GT811_CONFIG_CHECKSUM_REG  0x80FF /* 配置文件校验码 */ 
+
+#define GT811_FIRMWARE_VERSION_REG 0x8144 /* 固件版本号 */ 
+
+/* GT811单个触点配置参数，一次性写入 */ 
+const uint8_t s_GT811_CfgParams[]= 
+{ 
+
+#if 1	/* 1024 * 600 */
+	0x00,0x00,0x04,0x58,0x02,0x0A,0x0D,0x00,
+	0x01,0x08,0x28,0x05,0x50,0x32,0x03,0x05,
+	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+	0x00,0x00,0x00,0x8C,0x2E,0x0E,0x27,0x24,
+	0xD0,0x07,0x00,0x00,0x01,0x99,0x04,0x1D,
+	0x00,0x00,0x00,0x00,0x00,0x03,0x64,0x32,
+	0x00,0x00,0x00,0x0F,0x23,0x94,0xC5,0x02,
+	0x07,0x00,0x00,0x04,0xA2,0x10,0x00,0x8C,
+	0x13,0x00,0x7C,0x16,0x00,0x68,0x1B,0x00,
+	0x5C,0x20,0x00,0x5C,0x00,0x00,0x00,0x00,
+	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+	0x00,0x00,0x00,0x01,0x25,0x14,0x04,0x14,
+	0x00,0x00,0x02,0x00,0x00,0x00,0x00,0x00,
+	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+	0x02,0x04,0x06,0x08,0x0A,0x0C,0x0E,0x10,
+	0x12,0x14,0x16,0x18,0x1A,0x1C,0x00,0x00,
+	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x02,
+	0x04,0x06,0x08,0x0A,0x0C,0x0F,0x10,0x12,
+	0x13,0x14,0x16,0x18,0x1C,0x1D,0x1E,0x1F,
+	0x20,0x21,0x22,0x24,0x26,0x28,0x29,0x2A,
+	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+	0x43,0x01	
+#else
+
+	0x00, //0x8047 版本号 
+
+	0xE0,0x01, //0x8048/8049 X坐标输出最大值480 
+
+	0x56,0x03, //0x804a/804b Y坐标输出最大值854 
+
+	0x01, //0x804c 输出触点个数上限 
+
+	0x35, //0x804d 软件降噪，下降沿触发 
+
+	0x00, //0x804e reserved 
+
+	0x02, //0x804f 手指按下去抖动次数 
+
+	0x08, //0x8050 原始坐标窗口滤波值 
+
+	0x28, //0x8051 大面积触点个数 
+
+	0x0A, //0x8052 噪声消除值 
+
+	0x5A, //0x8053 屏上触摸点从无到有的阈值 
+
+	0x46, //0x8054 屏上触摸点从有到无的阈值 
+
+	0x03, //0x8055 进低功耗时间 s 
+
+	0x05, //0x8056 坐标上报率 
+
+	0x00, //0x8057 X坐标输出门上限 
+
+	0x00, //0x8058 Y坐标输出门上限 
+
+	0x00,0X00, //0x8059-0x805a reserved 
+
+	0x00, //0x805b reserved 
+
+	0x00, //0x805c reserved 
+
+	0x00, //0x805d 划线过程中小filter设置 
+
+	0x18, //0x805e 拉伸区间 1 系数 
+
+	0x1A, //0x805f 拉伸区间 2 系数 
+
+	0x1E, //0x8060 拉伸区间 3 系数 
+
+	0x14, //0x8061 各拉伸区间基数 
+
+	0x8C, //0x8062 、、 
+
+	0x28, //0x8063 、、 
+
+	0x0C, //0x8064 、、 
+
+	0x71, //0x8065 驱动组A的驱动频率倍频系数 
+
+	0x73, //0x8066 驱动组B的驱动频率倍频系数 
+
+	0xB2, //0x8067 驱动组A、B的基频 
+
+	0x04, //0x8068 
+
+	0x00, //0x8069 相邻两次驱动信号输出时间间隔 
+
+	0x00, //0x806a 
+
+	0x00, //0x806b 、、 
+
+	0x02, //0x806c 、、 
+
+	0x03, //0x806d 原始值放大系数 
+
+	0x1D, //0x806e 、、 
+
+	0x00, //0x806f reserved 
+
+	0x01, //0x8070 、、 
+
+	0x00,0x00, //reserved 
+
+	0x00, //0x8073 、、 
+
+	0x00,0x00,0x00,0x00,0x00,0x00, //0x8071 - 0x8079 reserved 
+
+	0x50, //0x807a 跳频范围的起点频率 
+
+	0xA0, //0x807b 跳频范围的终点频率 
+
+	0x94, //0x807c 多次噪声检测后确定噪声量，1-63有效 
+
+	0xD5, //0x807d 噪声检测超时时间 
+
+	0x02, //0x807e 、、 
+
+	0x07, //0x807f 判别有干扰的门限 
+
+	0x00,0x00, //0x8081 reserved 
+
+	0x04, //0x8082 跳频检测区间频段1中心点基频（适用于驱动A、B） 
+
+	0xA4, //0x8083 
+
+	0x55, //0x8084 跳频检测区间频段1中心点倍频系数 
+
+	0x00, //0x8085 跳频检测区间频段2中心点基频(驱动A、B在此基础上换算) 
+
+	0x91, //0x8086 
+
+	0x62, //0x8087 跳频检测区间频段2中心点倍频系数 
+
+	0x00, //0x8088 跳频检测区间频段3中心点基频（适用于驱动A、B） 
+
+	0x80, //0x8089 
+
+	0x71, //0x808a 跳频检测区间频段3中心点倍频系数 
+
+	0x00, //0x808b 跳频检测区间频段4中心点基频（适用于驱动A、B） 
+
+	0x71, //0x808c 
+
+	0x82, //0x808d 跳频检测区间频段4中心点倍频系数 
+
+	0x00, //0x808e 跳频检测区间频段5中心点基频（适用于驱动A、B） 
+
+	0x65, //0x808f 
+
+	0x95, //0x8090 跳频检测区间频段5中心点倍频系数 
+
+	0x00, 0x65, //reserved 
+
+	0x00, //0x8093 key1位置 0：无按键 
+
+	0x00, //0x8094 key2位置 0：无按键 
+
+	0x00, //0x8095 key3位置 0：无按键 
+
+	0x00, //0x8096 key4位置 0：无按键 
+
+	0x00, //0x8097 reserved 
+
+	0x00, //0x8098 reserved 
+
+	0x00, //0x8099 reserved 
+
+	0x00, //0x809a reserved 
+
+	0x00, //0x809b reserved 
+
+	0x00, //0x809c reserved 
+
+	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00, 
+
+	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00, //0x809d-0x80b2 reserved 
+
+	0x00, //0x80b3 合框距离 
+
+	0x00, //0x80b4 
+
+	0x00,0x00, //0x80b6 reserved 
+
+	0x06, //0x80b7 
+
+	0x08, //0x80b8 
+
+	0x0A, //0x80b9 
+
+	0x0C, //0x80ba 
+
+	0x0E, //0x80bb 
+
+	0x10, //0x80bc 
+
+	0x12, //0x80bd 
+
+	0x14, //0x80be 
+
+	0x16, //0x80bf 
++	
+	0x18, //0x80c0 
+
+	0x1A, //0x80c1 
+
+	0x1C, //0x80c2 
+
+	0xFF, //0x80c3 
+
+	0xFF, //0x80c4 
+
+	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00, 
+
+	0x00,0x00,0x00 
 
 
-static void GT811_WriteReg(uint16_t _usRegAddr, uint8_t *_pRegBuf, uint8_t _ucLen);
-static void GT811_ReadReg(uint16_t _usRegAddr, uint8_t *_pRegBuf, uint8_t _ucLen);
+
+	,0x00, //0x80c5-0x80d4 reserved 
+
+	0x00, //0x80d5 
+
+	0x02, //0x80d6 
+
+	0x04, //0x80d7 
+
+	0x06, //0x80d8 
+
+	0x08, //0x80d9 
+
+	0x0A, //0x80da 
+
+	0x0C, //0x80db 
+
+	0x0F, //0x80dc 
+
+	0x10, //0x80dd 
+
+	0x12, //0x80de 
+
+	0x13, //0x80df 
+
+	0x14, //0x80e0 
+
+	0x16, //0x80e1 
+
+	0x18, //0x80e2 
+
+	0x1C, //0x80e3 
+
+	0x1D, //0x80e4 
+
+	0x1E, //0x80e5 
+
+	0x1F, //0x80e6 
+
+	0x20, //0x80e7 
+
+	0x21, //0x80e8 
+
+	0xFF, //0x80e9 
+
+	0xFF, //0x80ea 
+
+	0xFF, //0x80eb 
+
+	0xFF, //0x80ec 
+
+	0xFF, //0x80ed 
+
+	0xFF, //0x80ee 
+
+	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00, 
+
+	0x00,0x00,0x00,0x00, //0x80ef-0x80fe reserved 
+
+	0x0B, //0x80ff 配置信息校验 
+
+	0x01 //0x8100 配置以更新标记 
+#endif
+}; 
 
 GT811_T g_GT811;
+
+static void GT811_WriteReg(uint16_t _usRegAddr, uint8_t *_pRegBuf, uint8_t _ucLen);
+static uint8_t GT811_ReadReg(uint16_t _usRegAddr, uint8_t *_pRegBuf, uint8_t _ucLen);
+
 
 /*
 *********************************************************************************************************
@@ -233,30 +347,21 @@ void GT811_InitHard(void)
 {
 #if 0
 	uint16_t ver;
-	
 	ver = GT811_ReadVersion();
-	printf("GT811 Version : %04X\r\n", ver);
+	
+	printf("GT811 ID :%08X, Version : %04X\r\n", id, ver);
 #endif
 
 	g_GT811.TimerCount = 0;
 	
-
+	bsp_DelayMS(50);
+	
 	/* I2C总线初始化在 bsp.c 中执行 */
 	
-	GT811_WriteReg(GT811_CONFIG_REG, (uint8_t *)s_GT811_CfgParams, sizeof(s_GT811_CfgParams));
-	
-	/* 根据模组类型重置分辨率寄存器 */
-	if (g_GT811.i2c_addr == GT811_I2C_ADDR1)
-	{
-		const uint8_t tab[4] = {0xe0, 0x01, 0x20, 0x03};
-		GT811_WriteReg(0x6DD, (uint8_t *)tab, 4);
-	}
-	else	/* GT811_I2C_ADDR3 */
-	{
-		const uint8_t tab[4] = {0x58, 0x02, 0x00, 0x04};
-		GT811_WriteReg(0x6DD, (uint8_t *)tab, 4);
-	}
-	
+	/*
+		无需传送配置参数
+		GT811_WriteReg(GT811_CONFIG_REG, (uint8_t *)s_GT811_CfgParams, sizeof(s_GT811_CfgParams));
+	*/
 	
 	g_GT811.TimerCount = 0;
 	g_GT811.Enable = 1;
@@ -272,13 +377,12 @@ void GT811_InitHard(void)
 */
 uint16_t GT811_ReadVersion(void)
 {
-	uint8_t buf[2];
+	uint8_t buf[2]; 
 
-	GT811_ReadReg(0x717, buf, 2);
+	GT811_ReadReg(GT811_FIRMWARE_VERSION_REG, buf, 2); 
 
-	return ((uint16_t)buf[0] << 8) + buf[1];
+	return ((uint16_t)buf[1] << 8) + buf[0]; 
 }
-
 
 /*
 *********************************************************************************************************
@@ -307,11 +411,11 @@ static void GT811_WriteReg(uint16_t _usRegAddr, uint8_t *_pRegBuf, uint8_t _ucLe
 
 	for (i = 0; i < _ucLen; i++)
 	{
-	    i2c_SendByte(_pRegBuf[i]);		/* 寄存器数据 */
+	    i2c_SendByte(_pRegBuf[i]);  /* 寄存器数据 */
 		i2c_WaitAck();
 	}
 
-    i2c_Stop();                   			/* 总线停止信号 */
+    i2c_Stop();                   	/* 总线停止信号 */
 }
 
 /*
@@ -321,27 +425,39 @@ static void GT811_WriteReg(uint16_t _usRegAddr, uint8_t *_pRegBuf, uint8_t _ucLe
 *	形    参: _usRegAddr : 寄存器地址
 *			  _pRegBuf : 寄存器数据缓冲区
 *			 _ucLen : 数据长度
-*	返 回 值: 无
+*	返 回 值: 0 表示失败，1表示成功
 *********************************************************************************************************
 */
-static void GT811_ReadReg(uint16_t _usRegAddr, uint8_t *_pRegBuf, uint8_t _ucLen)
+static uint8_t GT811_ReadReg(uint16_t _usRegAddr, uint8_t *_pRegBuf, uint8_t _ucLen)
 {
-	uint8_t i;
+	int16_t i;
 
     i2c_Start();					/* 总线开始信号 */
 
     i2c_SendByte(g_GT811.i2c_addr);	/* 发送设备地址+写信号 */
-	i2c_WaitAck();
+	if (i2c_WaitAck() != 0)
+	{
+		goto cmd_fail;	
+	}
 
     i2c_SendByte(_usRegAddr >> 8);	/* 地址高8位 */
-	i2c_WaitAck();
+	if (i2c_WaitAck() != 0)
+	{
+		goto cmd_fail;	
+	}
 
     i2c_SendByte(_usRegAddr);		/* 地址低8位 */
-	i2c_WaitAck();
+	if (i2c_WaitAck() != 0)
+	{
+		goto cmd_fail;	
+	}
 
 	i2c_Start();
     i2c_SendByte(g_GT811.i2c_addr + 0x01);	/* 发送设备地址+读信号 */
-	i2c_WaitAck();
+	if (i2c_WaitAck() != 0)
+	{
+		goto cmd_fail;	
+	}
 
 	for (i = 0; i < _ucLen - 1; i++)
 	{
@@ -351,9 +467,19 @@ static void GT811_ReadReg(uint16_t _usRegAddr, uint8_t *_pRegBuf, uint8_t _ucLen
 
 	/* 最后一个数据 */
 	 _pRegBuf[i] = i2c_ReadByte();		/* 读寄存器数据 */
+
 	i2c_NAck();
 
     i2c_Stop();							/* 总线停止信号 */
+	
+	return 1;
+	
+cmd_fail: /* 命令执行失败后，切记发送停止信号，避免影响I2C总线上其他设备 */
+	/* 发送I2C总线停止信号 */
+	i2c_Stop();
+	
+
+	return 0;
 }
 
 /*
@@ -377,31 +503,58 @@ void GT811_Timer1ms(void)
 *	返 回 值: 无
 *********************************************************************************************************
 */
+#ifdef USE_EMWIN
 extern GUI_PID_STATE State;
 void GT811_OnePiontScan(void)
 {
-	uint8_t buf[6];
+	uint8_t buf[10];
 	static uint8_t s_tp_down = 0;
 	uint16_t x, y;
+	uint8_t clear_flag = 0;
+	uint8_t res;
+	static uint32_t count = 0;
+	
 	
 	/* 读取寄存器：0x721  R  TouchpointFlag  Sensor_ID  key  tp4  tp3  tp2  tp1  tp0 */
-	GT811_ReadReg(GT811_READ_XY_REG, buf, 1);
+	res = GT811_ReadReg(GT811_READ_XY_REG, buf, 1);
+	
+	if(res == 0)
+	{
+		printf_gt811dbg("1.failed\r\n");
+		return;
+	}	
 	
 	/* 判断是否按下，没有按下，直接退出 */
-	if ((buf[0] & 0x01) == 0)
+	if ((buf[0] & 0x0f) == 0)
+	//if (buf[0] == 0)
 	{
+		GT811_WriteReg(GT811_READ_XY_REG, &clear_flag,	1);
+		
 		if (s_tp_down == 1)
 		{
+			count++;
 			/* State.x和State.y的数值无需更新，State是全局变量，保存的就是最近一次的数值 */
-			s_tp_down = 0;
-			State.Pressed = 0;
-			GUI_PID_StoreState(&State);
+			/* 必须检测到2次以上才可以松手 */
+			if(count > 2)
+			{   
+				s_tp_down = 0;
+				count = 0;
+				State.Pressed = 0;
+				GUI_PID_StoreState(&State);
+			}
 		}
 		return;
 	}
 	
 	/* 读取第一个触摸点0 */
-	GT811_ReadReg(GT811_READ_XY_REG + 1, &buf[1], 5);
+	res = GT811_ReadReg(GT811_READ_XY_REG + 1, &buf[1], 5);
+	GT811_WriteReg(GT811_READ_XY_REG, &clear_flag,	1);	
+	
+	if(res == 0)
+	{
+		printf_gt811dbg("2.failed\r\n");
+		return;
+	}
 	
 	/*
 	0x721  R  TouchpointFlag  Sensor_ID  key  tp4  tp3  tp2  tp1  tp0
@@ -415,17 +568,38 @@ void GT811_OnePiontScan(void)
 	*/
 	g_GT811.TouchpointFlag = buf[0];
 	g_GT811.Touchkeystate = buf[1];
+
+	g_GT811.X0 = ((uint16_t)buf[3] << 8) + buf[2];
+	g_GT811.Y0 = ((uint16_t)buf[5] << 8) + buf[4];
 	
-	g_GT811.X0 = ((uint16_t)buf[2] << 8) + buf[3];
-	g_GT811.Y0 = ((uint16_t)buf[4] << 8) + buf[5];
+#if 0  /* 这个参数暂时用不到 如果要使用，需要多读取几个字节数据 */
+	g_GT811.P0 = ((uint16_t)buf[7] << 8) + buf[6];
+	
+	if(g_GT811.P0 == 0)
+	{
+		printf_gt811dbg("%5d,%5d,%3d\r\n",  g_GT811.X0, g_GT811.Y0, g_GT811.P0);
+		return;
+	}
+#endif
 	
 	/* 检测按下 */
 	/* 坐标转换 :
 		电容触摸板左下角是 (0，0);  右上角是 (479，799)
 		需要转到LCD的像素坐标 (左上角是 (0，0), 右下角是 (799，479)
 	*/
-	x = g_GT811.Y0;
-	y = 479 - g_GT811.X0;
+	x = g_GT811.X0;
+	y = g_GT811.Y0;
+	
+	if (x > 799)
+	{
+		x = 799;
+	}
+	
+	if (y > 479)
+	{
+		y = 479;
+	}
+	
 	
 	if (s_tp_down == 0)
 	{
@@ -442,11 +616,15 @@ void GT811_OnePiontScan(void)
 		State.Pressed = 1;
 		GUI_PID_StoreState(&State);
 	}
+	
+	/* 实时清零 */
+	count = 0;
 
 #if 0
-	printf("%5d,%5d,%3d\r\n",  g_GT811.X0, g_GT811.Y0, g_GT811.P0);
+	printf("%5d,%5d,%5d\r\n",  g_GT811.X0, g_GT811.Y0, g_GT811.P0);
 #endif	
 }
+#endif
 
 /*
 *********************************************************************************************************
@@ -463,23 +641,28 @@ void GT811_Scan(void)
 	static uint8_t s_tp_down = 0;
 	uint16_t x, y;
 	static uint16_t x_save, y_save;
+	uint8_t clear_flag = 0;
 
 	if (g_GT811.Enable == 0)
 	{
 		return;
 	}
-	
+#ifndef USE_FreeRTOS
 	/* 20ms 执行一次 */
 	if (g_GT811.TimerCount < 20)
 	{
 		return;
 	}
+#endif
 
 	g_GT811.TimerCount = 0;
-	
-	GT811_ReadReg(GT811_READ_XY_REG, buf, 1);		
-	if ((buf[0] & 0x01) == 0)
+
+	GT811_ReadReg(GT811_READ_XY_REG, buf, 1);
+	//if ((buf[0] & 0x0F) == 0)
+	if (buf[0] == 0)
 	{
+		//GT811_WriteReg(GT811_READ_XY_REG, &clear_flag,	1);		/* 读完坐标后必须写0清除 */
+		
 		if (s_tp_down == 1)
 		{
 			s_tp_down = 0;
@@ -488,69 +671,83 @@ void GT811_Scan(void)
 		return;
 	}
 					
-	GT811_ReadReg(GT811_READ_XY_REG + 1, &buf[1], 33);
+	GT811_ReadReg(GT811_READ_XY_REG + 1, &buf[1], 39);
+	GT811_WriteReg(GT811_READ_XY_REG, &clear_flag,	1);		/* 读完坐标后必须写0清除 */
 	
 	/*
-	0x721  R  TouchpointFlag  Sensor_ID  key  tp4  tp3  tp2  tp1  tp0
-	0x722  R  Touchkeystate     0  0  0  0  key4  key3  key2  key1
+		0x814E R/W Bufferstatus Large_Detect number of touch points 
+			Bit7: Buffer status，1表示坐标（或按键）已经准备好，主控可以读取；0表示未就绪，数据无效。当主控读取完坐标后，必须通过I2C将此标志（或整个字节）写为0。
+			Bit4: HaveKey, 1表示有按键，0表示无按键（已经松键）。
+			Bit3~0: Number of touch points, 屏上的坐标点个数
+	
+		0x814F R Point1 track id 
+		0x8150 R Point1Xl 触摸点 1，X 坐标低 8 位 
+		0x8151 R Point1Xh 触摸点 1，X 坐标高 8 位 
+		0x8152 R Point1Yl 触摸点 1，Y 坐标低 8 位 
+		0x8153 R Point1Yh 触摸点 1，Y 坐标高 8 位 
+		0x8154 R Point1 触摸点 1，触摸面积低 8 位 
+		0x8155 R Point1 触摸点 1，触摸面积高 8 位 
+		0x8156 ----
+	
+		0x8157 R Point2 track id 
+		0x8158 R Point2Xl 触摸点 2，X 坐标低 8 位 
+		0x8159 R Point2Xh 触摸点 2，X 坐标高 8 位 
+		0x815A R Point2Yl 触摸点 2，Y 坐标低 8 位 
+		0x815B R Point2Yh 触摸点 2，Y 坐标高 8 位 
+		0x815C R Point2 触摸点 2，触摸面积低 8 位 
+		0x815D R Point2 触摸点 2，触摸面积高 8 位 
+		0x815E ----
 
-	0x723  R  Point0Xh  触摸点 0，X 坐标高 8 位
-	0x724  R  Point0Xl  触摸点 0，X 坐标低 8 位
-	0x725  R  Point0Yh  触摸点 0，Y 坐标高 8 位
-	0x726  R  Point0Yl  触摸点 0，Y 坐标低 8 位
-	0x727  R  Point0Pressure  触摸点 0，触摸压力
+		0x815F R Point3 track id 
+		0x8160 R Point3Xl 触摸点 3，X 坐标低 8 位 
+		0x8161 R Point3Xh 触摸点 3，X 坐标高 8 位 
+		0x8162 R Point3Yl 触摸点 3，Y 坐标低 8 位 
+		0x8163 R Point3Yh 触摸点 3，Y 坐标高 8 位 
+		0x8164 R Point3 触摸点 3，触摸面积低 8 位 
+		0x8165 R Point3 触摸点 3，触摸面积高 8 位 
+		0x8166 ----
 
-	0x728  R  Point1Xh  触摸点 1，X 坐标高 8 位
-	0x729  R  Point1Xl  触摸点 1，X 坐标低 8 位
-	0x72A  R  Point1Yh  触摸点 1，Y 坐标高 8 位
-	0x72B  R  Point1Yl  触摸点 1，Y 坐标低 8 位
-	0x72C  R  Point1Pressure  触摸点 1，触摸压力
+		0x8167 R Point4 track id 
+		0x8168 R Point4Xl 触摸点 4，X 坐标低 8 位 
+		0x8169 R Point4Xh 触摸点 4，X 坐标高 8 位 
+		0x816A R Point4Yl 触摸点 4，Y 坐标低 8 位 
+		0x816B R Point4Yh 触摸点 4，Y 坐标高 8 位 
+		0x816C R Point4 触摸点 4，触摸面积低 8 位 
+		0x816D R Point4 触摸点 4，触摸面积高 8 位 
+		0x816E ----
 
-	0x72D  R  Point2Xh  触摸点 2，X 坐标高 8 位
-	0x72E  R  Point2Xl  触摸点 2，X 坐标低 8 位
-	0x72F  R  Point2Yh  触摸点 2，Y 坐标高 8 位
-	0x730  R  Point2Yl  触摸点 2，Y 坐标低 8 位
-	0x731  R  Point2Pressure  触摸点 2，触摸压力
-
-	0x732  R  Point3Xh  触摸点 3，X 坐标高 8 位
-	0x733-0x738  R    Reserve  none
-	0x739  R  Point3Xl  触摸点 3，X 坐标低 8 位
-	0x73A  R  Point3Yh  触摸点 3，Y 坐标高 8 位
-	0x73B  R  Point3Yl  触摸点 3，Y 坐标低 8 位
-	0x73C  R  Point3Pressure  触摸点 3，触摸压力
-
-	0x73D  R  Point4Xh  触摸点 4，X 坐标高 8 位
-	0x73E  R  Point4Xl  触摸点 4，X 坐标低 8 位
-	0x73F  R  Point4Yh  触摸点 4，Y 坐标高 8 位
-	0x740  R  Point4Yl  触摸点 4，Y 坐标低 8 位
-	0x741  R  Point4Pressure  触摸点 4，触摸压力
-
-	0x742  R  Data_check_sum  Data check Sum
+		0x816F R Point5 track id 
+		0x8170 R Point5Xl 触摸点 5，X 坐标低 8 位 
+		0x8171 R Point5Xh 触摸点 5，X 坐标高 8 位 
+		0x8172 R Point5Yl 触摸点 5，Y 坐标低 8 位 
+		0x8173 R Point5Yh 触摸点 5，Y 坐标高 8 位 
+		0x8174 R Point5 触摸点 5，触摸面积低 8 位 
+		0x8175 R Point5 触摸点 5，触摸面积高 8 位 
+		0x8176 --
+		
 	*/
-
 	g_GT811.TouchpointFlag = buf[0];
 	g_GT811.Touchkeystate = buf[1];
 
-	g_GT811.X0 = ((uint16_t)buf[2] << 8) + buf[3];
-	g_GT811.Y0 = ((uint16_t)buf[4] << 8) + buf[5];
-	g_GT811.P0 = buf[6];
+	g_GT811.X0 = ((uint16_t)buf[3] << 8) + buf[2];
+	g_GT811.Y0 = ((uint16_t)buf[5] << 8) + buf[4];
+	g_GT811.P0 = ((uint16_t)buf[7] << 8) + buf[6];
 
-	g_GT811.X1 = ((uint16_t)buf[7] << 8) + buf[8];
-	g_GT811.Y1 = ((uint16_t)buf[9] << 8) + buf[10];
-	g_GT811.P1 = buf[11];
+	g_GT811.X1 = ((uint16_t)buf[9] << 8) + buf[10];
+	g_GT811.Y1 = ((uint16_t)buf[11] << 8) + buf[12];
+	g_GT811.P1 = ((uint16_t)buf[13] << 8) + buf[14];
 
-	g_GT811.X2 = ((uint16_t)buf[12] << 8) + buf[13];
-	g_GT811.Y2 = ((uint16_t)buf[14] << 8) + buf[15];
-	g_GT811.P2 = buf[16];
+	g_GT811.X2 = ((uint16_t)buf[17] << 8) + buf[16];
+	g_GT811.Y2 = ((uint16_t)buf[19] << 8) + buf[18];
+	g_GT811.P2 = ((uint16_t)buf[21] << 8) + buf[20];
 
-	/* 触摸点3的地址不连续 */
-	g_GT811.X3 = ((uint16_t)buf[17] << 8) + buf[24];
-	g_GT811.Y3 = ((uint16_t)buf[25] << 8) + buf[26];
-	g_GT811.P3 = buf[27];
+	g_GT811.X3 = ((uint16_t)buf[24] << 8) + buf[23];
+	g_GT811.Y3 = ((uint16_t)buf[26] << 8) + buf[25];
+	g_GT811.P3 = ((uint16_t)buf[28] << 8) + buf[27];
 
-	g_GT811.X4 = ((uint16_t)buf[28] << 8) + buf[29];
-	g_GT811.Y4 = ((uint16_t)buf[30] << 8) + buf[31];
-	g_GT811.P4 = buf[32];
+	g_GT811.X4 = ((uint16_t)buf[31] << 8) + buf[30];
+	g_GT811.Y4 = ((uint16_t)buf[33] << 8) + buf[32];
+	g_GT811.P4 = ((uint16_t)buf[35] << 8) + buf[34];
 
 	/* 检测按下 */
 	{
@@ -559,38 +756,37 @@ void GT811_Scan(void)
 			需要转到LCD的像素坐标 (左上角是 (0，0), 右下角是 (799，479)
 		*/
 
-
 		/* 必须判断值域 */
-		if (g_GT811.i2c_addr == GT811_I2C_ADDR1)
+//		if (g_GT811.i2c_addr == GT811_I2C_ADDR1)
 		{
-			x = g_GT811.Y0;
-			y = 479 - g_GT811.X0;
+			x = g_GT811.X0;
+			y = g_GT811.Y0;
 			
-			if (x > 800)
+			if (x > 799)
 			{
-				x = 800;
+				x = 799;
 			}
 			
-			if (y > 480)
+			if (y > 479)
 			{
-				y = 480;
+				y = 479;
 			}
 		}
-		else
-		{
-			x = g_GT811.Y0;
-			y = 599 - g_GT811.X0;
-		
-			if (x > 1024)
-			{
-				x = 1024;
-			}
-			
-			if (y > 600)
-			{
-				y = 600;
-			}
-		}
+//		else
+//		{
+//			x = g_GT811.Y0;
+//			y = 599 - g_GT811.X0;
+//		
+//			if (x > 1024)
+//			{
+//				x = 1024;
+//			}
+//			
+//			if (y > 600)
+//			{
+//				y = 600;
+//			}
+//		}
 	}
 	
 	if (s_tp_down == 0)
@@ -607,18 +803,22 @@ void GT811_Scan(void)
 	y_save = y;
 
 #if 0
-	for (i = 0; i < 34; i++)
 	{
-		printf("%02X ", buf[i]);
-	}
-	printf("\r\n");
+		uint8_t i;
+		
+		for (i = 0; i < 34; i++)
+		{
+			printf("%02X ", buf[i]);
+		}
+		printf("\r\n");
 
-	printf("(%5d,%5d,%3d) ",  g_GT811.X0, g_GT811.Y0, g_GT811.P0);
-	printf("(%5d,%5d,%3d) ",  g_GT811.X1, g_GT811.Y1, g_GT811.P1);
-	printf("(%5d,%5d,%3d) ",  g_GT811.X2, g_GT811.Y2, g_GT811.P2);
-	printf("(%5d,%5d,%3d) ",  g_GT811.X3, g_GT811.Y3, g_GT811.P3);
-	printf("(%5d,%5d,%3d) ",  x, y, g_GT811.P4);
-	printf("\r\n");
+		printf("(%5d,%5d,%3d) ",  g_GT811.X0, g_GT811.Y0, g_GT811.P0);
+		printf("(%5d,%5d,%3d) ",  g_GT811.X1, g_GT811.Y1, g_GT811.P1);
+		printf("(%5d,%5d,%3d) ",  g_GT811.X2, g_GT811.Y2, g_GT811.P2);
+		printf("(%5d,%5d,%3d) ",  g_GT811.X3, g_GT811.Y3, g_GT811.P3);
+		printf("(%5d,%5d,%3d) ",  x, y, g_GT811.P4);
+		printf("\r\n");
+	}
 #endif	
 }
 
@@ -642,3 +842,4 @@ uint8_t GT811_ReadSensorID(void)
 
 
 /***************************** 安富莱电子 www.armfly.com (END OF FILE) *********************************/
+
